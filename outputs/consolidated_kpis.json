@@ -1,0 +1,207 @@
+{
+  "meta": {
+    "project": "Procurement Spend & Supplier Cost Optimization Engine",
+    "currency": "USD",
+    "data_note": "All figures derived from a SIMULATED procurement dataset. Savings are MODELED / ESTIMATED opportunity, not realized savings.",
+    "seed": 20260610
+  },
+  "data_quality": {
+    "raw_rows": 47180,
+    "clean_rows": 46424,
+    "rows_removed": 756,
+    "rows_repaired": 130,
+    "checks": [
+      {
+        "name": "duplicate_po_line_id",
+        "flagged": 180,
+        "pct_of_raw": 0.382,
+        "action": "removed (keep first)",
+        "severity": "error"
+      },
+      {
+        "name": "exact_duplicate_rows",
+        "flagged": 171,
+        "pct_of_raw": 0.362,
+        "action": "flagged (subset of above)",
+        "severity": "warning"
+      },
+      {
+        "name": "missing_supplier",
+        "flagged": 90,
+        "pct_of_raw": 0.191,
+        "action": "removed",
+        "severity": "error"
+      },
+      {
+        "name": "missing_unit_price",
+        "flagged": 119,
+        "pct_of_raw": 0.252,
+        "action": "removed",
+        "severity": "error"
+      },
+      {
+        "name": "nonpositive_quantity",
+        "flagged": 110,
+        "pct_of_raw": 0.233,
+        "action": "removed",
+        "severity": "error"
+      },
+      {
+        "name": "nonpositive_unit_price",
+        "flagged": 40,
+        "pct_of_raw": 0.085,
+        "action": "removed",
+        "severity": "error"
+      },
+      {
+        "name": "delivery_before_order",
+        "flagged": 150,
+        "pct_of_raw": 0.318,
+        "action": "removed",
+        "severity": "error"
+      },
+      {
+        "name": "missing_or_unparseable_date",
+        "flagged": 0,
+        "pct_of_raw": 0.0,
+        "action": "flagged",
+        "severity": "warning"
+      },
+      {
+        "name": "delivery_slip_gt_120d",
+        "flagged": 10,
+        "pct_of_raw": 0.021,
+        "action": "flagged (kept)",
+        "severity": "warning"
+      },
+      {
+        "name": "extreme_unit_price_outlier",
+        "flagged": 72,
+        "pct_of_raw": 0.153,
+        "action": "removed",
+        "severity": "error"
+      },
+      {
+        "name": "invalid_contract_status",
+        "flagged": 130,
+        "pct_of_raw": 0.276,
+        "action": "normalized -> Off-Contract",
+        "severity": "warning"
+      },
+      {
+        "name": "invalid_quality_label",
+        "flagged": 0,
+        "pct_of_raw": 0.0,
+        "action": "flagged",
+        "severity": "warning"
+      }
+    ],
+    "dq_score": 98.4
+  },
+  "spend": {
+    "total_spend": 692782686.71,
+    "po_count": 18363,
+    "po_line_count": 46424,
+    "supplier_count": 106,
+    "category_count": 10,
+    "business_unit_count": 5,
+    "country_count": 10,
+    "item_count": 44,
+    "total_quantity": 5561123.0,
+    "avg_po_value": 37727.09724500354,
+    "avg_line_value": 14922.942588100983,
+    "spend_weighted_avg_unit_price": 124.57604097409822,
+    "suppliers_for_80pct_spend": 43,
+    "suppliers_for_80pct_pct": 40.6,
+    "categories_for_80pct_spend": 6,
+    "supplier_spend_hhi": 0.0287,
+    "category_spend_hhi": 0.1228,
+    "top10_supplier_spend_share": 0.4411
+  },
+  "benchmarking": {
+    "benchmarkable_groups": 81,
+    "benchmarkable_spend_share": 0.8861,
+    "overpriced_supplier_item_combos": 284,
+    "total_excess_vs_reference": 41842457.14000001,
+    "n_overpriced_suppliers": 51,
+    "n_persistent_premium_suppliers": 28,
+    "avg_overpriced_premium": 0.21959642587078762
+  },
+  "compliance": {
+    "total_spend": 692782686.71,
+    "on_contract_spend": 364634544.5,
+    "off_contract_spend": 328148142.21000004,
+    "compliance_rate_spend": 0.5263,
+    "compliance_rate_count": 0.5702,
+    "compliance_target": 0.9,
+    "gap_to_target_spend": 258869873.53900003,
+    "redirectable_off_contract_spend": 328148142.21000004,
+    "addressable_maverick_premium": 51760783.34,
+    "n_suppliers_below_50pct_compliance": 44
+  },
+  "scorecard": {
+    "avg_spi": 72.35,
+    "median_spi": 76.21,
+    "ranked_suppliers": 105,
+    "tier_A_suppliers": 27,
+    "tier_D_suppliers": 26,
+    "avg_otd_rate": 0.8247,
+    "avg_defect_rate": 0.0289,
+    "weights": {
+      "cost_competitiveness": 0.3,
+      "on_time_delivery": 0.2,
+      "quality": 0.2,
+      "contract_compliance": 0.15,
+      "lead_time_reliability": 0.15
+    }
+  },
+  "risk": {
+    "critical_suppliers": 2,
+    "high_suppliers": 18,
+    "medium_suppliers": 36,
+    "low_suppliers": 50,
+    "spend_at_high_or_critical": 184032203.38,
+    "single_source_categories": 2,
+    "single_source_items": 2,
+    "single_source_item_spend": 58149685.49,
+    "dual_source_items": 2,
+    "n_chronically_late": 21,
+    "n_high_defect": 20
+  },
+  "savings": {
+    "analyzed_years": 3.49,
+    "total_spend": 692782686.71,
+    "cost_savings_gross_gap": 92748426.51515,
+    "cost_savings_conservative": 23187106.6287875,
+    "cost_savings_base": 46374213.257575,
+    "cost_savings_aggressive": 69561319.8863625,
+    "cost_savings_base_pct_of_spend": 6.69,
+    "cost_savings_base_annualized": 13284848.150846485,
+    "payment_terms_annual_value": 1070282.6775709474,
+    "n_opportunities": 672,
+    "n_suppliers_with_opportunity": 106
+  },
+  "recommendations": {
+    "n_consolidate": 50,
+    "n_negotiate": 19,
+    "n_monitor": 16,
+    "n_replace": 12,
+    "n_retain": 9,
+    "spend_flagged_replace": 130726721.24,
+    "spend_flagged_negotiate": 98086331.83999999,
+    "savings_in_negotiate": 13797935.312675
+  },
+  "negotiation": {
+    "top_n": 10,
+    "top_targets_spend": 223529928.4,
+    "top_targets_modeled_savings": 20907317.7691,
+    "top_targets_spend_share": 32.27
+  },
+  "scenarios": {
+    "conservative_period": 15479382.389999999,
+    "base_period": 44387692.37425,
+    "aggressive_period": 67503338.683875,
+    "base_total_annual_value": 12715768.344858676,
+    "aggressive_total_annual_value": 20408003.8181869
+  }
+}

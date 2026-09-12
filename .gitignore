@@ -1,0 +1,38 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+env/
+.env
+
+# ---- Testing / coverage ----
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# ---- Jupyter ----
+.ipynb_checkpoints/
+
+# ---- OS / editor ----
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# ---- Generated data & artifacts ----
+# These are fully reproducible with `make all` (or `python -m src.pipeline`).
+# The committed markdown docs already contain the headline numbers, and
+# outputs/consolidated_kpis.json is kept so results are visible on GitHub.
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+outputs/tables/*
+!outputs/tables/.gitkeep
+outputs/powerbi/*
+!outputs/powerbi/.gitkeep

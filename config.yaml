@@ -1,0 +1,162 @@
+# =====================================================================
+# Procurement Spend & Supplier Cost Optimization Engine
+# Central configuration. ALL analytical assumptions live here so that
+# nothing is hard-coded inside the logic and every run is reproducible.
+# =====================================================================
+
+project:
+  name: "Procurement Spend & Supplier Cost Optimization Engine"
+  currency: "USD"          # reporting currency (data is synthetic; figures are MODELED)
+  currency_symbol: "$"
+
+# ---------------------------------------------------------------------
+# Synthetic data generation (reproducible)
+# ---------------------------------------------------------------------
+data:
+  seed: 20260610
+  n_po_lines: 47000        # target number of CLEAN purchase-order lines
+  n_suppliers: 106
+  start_date: "2023-01-01"
+  end_date:   "2026-06-30"
+  # Deliberately injected data-quality defects (Phase 1 must detect these).
+  # Counts are logged at generation time and asserted by the test-suite.
+  inject_issues:
+    duplicate_pos: 180          # fully duplicated PO lines
+    missing_supplier: 90        # supplier field blanked
+    missing_price: 120          # unit_price blanked
+    nonpositive_quantity: 110   # quantity <= 0
+    negative_price: 40          # unit_price < 0
+    date_inconsistency: 150     # delivery_date < order_date
+    extreme_price: 70           # unit_price inflated 8x-25x (fat-finger)
+    contract_flag_conflict: 130 # off-contract flag on a supplier that is otherwise on-contract
+
+# ---------------------------------------------------------------------
+# Phase 3 — Price benchmarking
+# ---------------------------------------------------------------------
+benchmarking:
+  # An item is only benchmarkable if enough comparable transactions exist
+  # AND it is supplied by more than one supplier (otherwise no market signal).
+  min_comparable_txns: 20
+  min_suppliers_per_item: 2
+  reference_percentile: 0.50      # "market/reference" price = median of comparable lines
+  competitive_percentile: 0.25    # "best-in-class" competitive price
+  overpriced_premium_threshold: 0.10   # supplier is "overpriced" if premium > 10% vs reference
+  # Benchmark is computed WITHIN (item x region-tier). Region tiers group
+  # supplier countries of similar cost structure so we compare like-with-like.
+  region_tiers:
+    LowCost:  [China, India, Vietnam, Mexico, Poland, Brazil]
+    HighCost: [United States, Germany, United Kingdom, Japan]
+
+# ---------------------------------------------------------------------
+# Phase 4 — Contract compliance
+# ---------------------------------------------------------------------
+compliance:
+  target_rate: 0.90               # policy target: 90% of spend under contract
+  # Off-contract lines are assumed to pay the "maverick premium": the gap
+  # between the off-contract price paid and the on-contract reference price.
+
+# ---------------------------------------------------------------------
+# Phase 5 — Supplier scorecard (weighted performance index)
+# Weights justified in docs/README. They must sum to 1.0 (asserted).
+# ---------------------------------------------------------------------
+scorecard:
+  weights:
+    cost_competitiveness: 0.30
+    on_time_delivery:     0.20
+    quality:              0.20
+    contract_compliance:  0.15
+    lead_time_reliability: 0.15
+  # Minimum spend for a supplier to receive a *ranked* score (avoids
+  # tiny/noisy suppliers dominating the leaderboard). Others still scored,
+  # flagged low-confidence.
+  min_spend_for_ranking: 250000
+
+# ---------------------------------------------------------------------
+# Phase 6 — Supplier risk
+# ---------------------------------------------------------------------
+risk:
+  # Each dimension produces a 0-100 sub-score; weighted into a composite,
+  # then banded. Thresholds are percentile/absolute hybrids.
+  weights:
+    delivery_risk:       0.25
+    quality_risk:        0.25
+    price_volatility:    0.20
+    concentration_risk:  0.15
+    trend_risk:          0.15
+  bands:                    # composite risk score -> band
+    LOW:      [0, 25]
+    MEDIUM:   [25, 50]
+    HIGH:     [50, 75]
+    CRITICAL: [75, 100.01]
+  single_source_hhi: 0.60   # category HHI above this = single-source concentration
+
+# ---------------------------------------------------------------------
+# Phase 7 — Savings opportunity engine
+# Conservative capture rates applied to the addressable gap.
+# ---------------------------------------------------------------------
+savings:
+  capture_rates:
+    conservative: 0.25
+    base:         0.50
+    aggressive:   0.75
+  # Only spend above this materiality floor is pursued per opportunity.
+  min_opportunity_value: 2000
+  # NON-OVERLAP DECOMPOSITION (avoids double counting the same spend):
+  #   price lever        : ON-contract overpaid lines, gap  price -> reference(median)
+  #   compliance lever   : OFF-contract lines,         gap  price -> on-contract reference
+  #   consolidation lever: fragmented items,           gap  reference -> best-in-class
+  #   demand lever       : items split across BUs,     small scale discount on the
+  #                        residual spend already at/below reference (not double-counted)
+  #   payment_terms lever: financial value only (working capital + early-pay discounts)
+  consolidation:
+    target_percentile: 0.25     # best-in-class price = 25th percentile
+    min_suppliers_fragmented: 3 # an item needs >=3 suppliers to be "fragmented"
+    max_share_shiftable: 0.60   # at most 60% of above-target volume is assumed movable
+  demand_aggregation:
+    min_business_units: 3       # item must be bought by >=3 BUs to aggregate
+    scale_discount: 0.015       # modeled 1.5% tail discount from volume leverage
+  payment_terms:
+    wacc: 0.09                  # annual cost of capital used to value working capital
+    dpo_target_days: 60         # target days-payable-outstanding
+    early_pay_terms: "2_10_NET30"
+    early_pay_discount: 0.02    # 2% discount available if paid within 10 days
+    early_pay_capture: 0.50     # assumed share of eligible early-pay discounts captured
+
+# ---------------------------------------------------------------------
+# Phase 8 — Negotiation prioritization
+# priority = f(savings, spend, performance gap, negotiability)
+# ---------------------------------------------------------------------
+negotiation:
+  weights:
+    savings_opportunity: 0.40
+    spend:               0.25
+    performance_gap:     0.20   # weaker performers are easier to challenge
+    negotiability:       0.15   # more suppliers / off-contract = more leverage
+  top_n_targets: 10
+
+# ---------------------------------------------------------------------
+# Phase 9 — Strategic recommendation engine (rule-based)
+# Percentile cut-points (computed on the ranked supplier population).
+# ---------------------------------------------------------------------
+recommendations:
+  perf_high_pct: 0.60     # performance score >= 60th pct = "high performer"
+  perf_low_pct:  0.30     # performance score <= 30th pct = "low performer"
+  premium_high:  0.10     # price premium > 10% = "expensive"
+  premium_ok:    0.03     # price premium < 3%  = "competitive"
+
+# ---------------------------------------------------------------------
+# Phase 10 — Scenario optimization
+# ---------------------------------------------------------------------
+scenarios:
+  conservative:
+    capture: "conservative"
+    include_levers: ["price", "compliance"]
+    premium_threshold: 0.15
+  base:
+    capture: "base"
+    include_levers: ["price", "compliance", "consolidation"]
+    premium_threshold: 0.10
+  aggressive:
+    capture: "aggressive"
+    include_levers: ["price", "compliance", "consolidation", "payment_terms"]
+    premium_threshold: 0.07
