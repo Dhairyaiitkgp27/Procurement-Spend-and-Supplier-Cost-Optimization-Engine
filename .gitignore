@@ -36,3 +36,8 @@ outputs/tables/*
 !outputs/tables/.gitkeep
 outputs/powerbi/*
 !outputs/powerbi/.gitkeep
+
+CV_BULLETS.md
+INTERVIEW_QA.md
+EXECUTIVE_SUMMARY.md
+POWERBI_GUIDE.md
